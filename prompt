@@ -1,5 +1,14 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem
 
+from datetime import datetime
+
+class Prompt:
+    def __init__(self, name, system_msg, user_msg):
+        self.name = name
+        self.system_msg = system_msg
+        self.user_msg = user_msg
+        self.updated = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+
 class PromptsPage(QWidget):
     def __init__(self, on_create_prompt):
         super().__init__()
