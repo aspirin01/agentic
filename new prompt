@@ -1,0 +1,48 @@
+from PyQt6.QtWidgets import QTextEdit, QMessageBox
+
+class NewPromptPage(QWidget):
+    def __init__(self, on_save_prompt, on_cancel):
+        super().__init__()
+        self.on_save_prompt = on_save_prompt
+        self.on_cancel = on_cancel
+
+        layout = QVBoxLayout()
+
+        top_bar = QHBoxLayout()
+        top_bar.addWidget(QLabel("Prompts"))
+        top_bar.addStretch()
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.on_cancel)
+        save_btn = QPushButton("Save")
+        save_btn.clicked.connect(self.save_prompt)
+        top_bar.addWidget(cancel_btn)
+        top_bar.addWidget(save_btn)
+        layout.addLayout(top_bar)
+
+        # Fields
+        self.name_input = QLineEdit()
+        self.system_input = QTextEdit()
+        self.user_input = QTextEdit()
+
+        layout.addWidget(QLabel("Name"))
+        layout.addWidget(self.name_input)
+        layout.addWidget(QLabel("System Message"))
+        layout.addWidget(self.system_input)
+        layout.addWidget(QLabel("Variables can be filled in when used, and the syntax for variables is: {{name}}"))
+        layout.addWidget(QLabel("User Message"))
+        layout.addWidget(self.user_input)
+        layout.addWidget(QLabel("Variables can be filled in when used, and the syntax for variables is: {{name}}"))
+
+        self.setLayout(layout)
+
+    def save_prompt(self):
+        name = self.name_input.text().strip()
+        system_msg = self.system_input.toPlainText()
+        user_msg = self.user_input.toPlainText()
+
+        if not name:
+            QMessageBox.warning(self, "Validation Error", "Prompt name is required.")
+            return
+
+        new_prompt = Prompt(name, system_msg, user_msg)
+        self.on_save_prompt(new_prompt)
