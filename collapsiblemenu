@@ -1,19 +1,8 @@
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QHBoxLayout, QScrollArea, QPushButton
+    QWidget, QVBoxLayout, QScrollArea, QPushButton
 )
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
-import sys
-
-# Sidebar structure (None for non-collapsible items)
-section_data = [
-    ("Workspace", "icons/flame.png", ["Sign In", "Sign Up"]),
-    ("Tools", "icons/pen.jpg", ["File System Tool", "Web Scraper"]),
-    ("Agents", "icons/books.jpg", ["Installed Agents", "Marketplace"]),
-    ("Record", "icons/record.png", None),
-    ("New Chat", "icons/plus.png", None),
-]
 
 
 class CollapsibleSection(QWidget):
@@ -68,7 +57,7 @@ class CollapsibleSection(QWidget):
             }
         """)
         if on_click:
-            btn.clicked.connect(on_click)
+            btn.clicked.connect(lambda _, name=text: on_click(name))
         self.content_layout.addWidget(btn)
 
     def toggle(self):
@@ -78,32 +67,34 @@ class CollapsibleSection(QWidget):
             self.content.setMaximumHeight(0)
 
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Sidebar: Mixed Collapsible and Flat Buttons")
-        self.setGeometry(100, 100, 1000, 600)
+class Sidebar(QWidget):
+    def __init__(self, navigate_to: callable, parent=None):
+        super().__init__(parent)
+        self.setFixedWidth(230)
 
-        main_widget = QWidget()
-        main_layout = QHBoxLayout(main_widget)
-        self.setCentralWidget(main_widget)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
 
-        # Sidebar setup
-        sidebar_scroll = QScrollArea()
-        sidebar_scroll.setWidgetResizable(True)
-        sidebar_scroll.setFixedWidth(230)
-        sidebar_widget = QWidget()
-        sidebar_layout = QVBoxLayout(sidebar_widget)
-        sidebar_layout.setContentsMargins(0, 10, 0, 10)
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 10, 0, 10)
 
-        # Dynamically render collapsible and flat buttons
+        # Sidebar structure
+        section_data = [
+            ("Workspace", "icons/flame.png", ["Sign In", "Sign Up"]),
+            ("Tools", "icons/pen.jpg", ["File System Tool", "Web Scraper"]),
+            ("Agents", "icons/books.jpg", ["Installed Agents", "Marketplace"]),
+            ("Record", "icons/record.png", None),
+            ("New Chat", "icons/plus.png", None),
+        ]
+
         for title, icon_path, children in section_data:
-            if children:  # Render collapsible section
+            if children:  # Collapsible section
                 section = CollapsibleSection(title=title, icon=icon_path)
                 for child in children:
-                    section.add_button(child)
-                sidebar_layout.addWidget(section)
-            else:  # Render flat button
+                    section.add_button(child, on_click=navigate_to)
+                layout.addWidget(section)
+            else:  # Flat button
                 btn = QPushButton(title)
                 btn.setIcon(QIcon(icon_path))
                 btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -119,17 +110,12 @@ class MainWindow(QMainWindow):
                         background-color: #e0e0e0;
                     }
                 """)
-                sidebar_layout.addWidget(btn)
+                btn.clicked.connect(lambda _, name=title: navigate_to(name))
+                layout.addWidget(btn)
 
-        sidebar_layout.addStretch()
-        sidebar_scroll.setWidget(sidebar_widget)
+        layout.addStretch()
+        scroll.setWidget(container)
 
-        main_layout.addWidget(sidebar_scroll)
-        main_layout.addWidget(QWidget())  # Placeholder for main content
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    win = MainWindow()
-    win.show()
-    sys.exit(app.exec())
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(scroll)
