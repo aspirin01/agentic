@@ -1,0 +1,38 @@
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem
+
+class PromptsPage(QWidget):
+    def __init__(self, on_create_prompt):
+        super().__init__()
+        self.on_create_prompt = on_create_prompt
+        self.prompts = [
+            Prompt("test", "You are a coding assistant good at React programming", "Help me create a dashboard using React and TS")
+        ]
+
+        layout = QVBoxLayout()
+        header = QHBoxLayout()
+
+        header.addWidget(QLabel("Prompts"))
+        header.addStretch()
+        new_btn = QPushButton("New")
+        new_btn.clicked.connect(self.on_create_prompt)
+        search_box = QLineEdit()
+        search_box.setPlaceholderText("Search")
+        header.addWidget(new_btn)
+        header.addWidget(search_box)
+
+        layout.addLayout(header)
+
+        self.table = QTableWidget()
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(["Name", "Actions", "Last Updated"])
+        self.refresh_table()
+
+        layout.addWidget(self.table)
+        self.setLayout(layout)
+
+    def refresh_table(self):
+        self.table.setRowCount(len(self.prompts))
+        for i, prompt in enumerate(self.prompts):
+            self.table.setItem(i, 0, QTableWidgetItem(prompt.name))
+            self.table.setItem(i, 1, QTableWidgetItem("—"))  # Placeholder for future actions
+            self.table.setItem(i, 2, QTableWidgetItem(prompt.updated))
